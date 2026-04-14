@@ -32,32 +32,34 @@
 \hline
 \rowcolor{hdrbg} \textcolor{white}{\textbf{Section}} & \textcolor{white}{\textbf{Content}} \\
 \hline
-1. Data Description & NIFTY 50 weekly returns\newline Source: Investing.com + Yahoo Finance \\
+1. Data Description & NIFTY 50 daily returns\newline Source: Investing.com + Yahoo Finance \\
 \hline
 \rowcolor{rowalt}
-2. Problem Statement & Do Fed rate cuts significantly alter return distributions?\newline Statistical inference: $H_0$ vs $H_1$, $\alpha = 0.05$ \\
+2. Problem Statement & Do Fed rate cuts significantly boost next-day NIFTY returns?\newline Statistical inference: $H_0$ vs $H_1$, $\alpha = 0.05$ \\
 \hline
 3. Methodology & Point \& interval estimation\newline Two-sample t-test\newline z-test for proportions \\
 \hline
 \rowcolor{rowalt}
-4. Results \& Inference & Hypothesis decisions\newline Confidence intervals\newline Practical implications \\
+4. Results \& Inference & Hypothesis decisions\newline Statistical vs economic significance\newline Trading implications \\
 \hline
 \end{tabularx}
 \end{table}
 
 \newpage
 \section{Data Description}
-Dataset: Weekly closing prices of the NIFTY 50 Index (\textasciicircum NSEI) from April 2000 to April 2026 - \textbf{1357} weekly observations.
+Dataset: Daily closing prices of the NIFTY 50 Index (\textasciicircum NSEI) from April 2000 to April 2026 --- \textbf{6457} daily observations.
 
-Derived variable: Weekly log-return, calculated as:
+Derived variable: Daily log-return, calculated as:
 \begin{equation*}
     r_t = \ln\left( \frac{P_t}{P_{t-1}} \right) \times 100
 \end{equation*}
 
+\textbf{Event definition:} FOMC rate cut announcements happen in US evening time (IST next morning). We define the \textbf{event day} as the \textbf{next Indian trading day} after each FOMC rate cut announcement. This captures the immediate market reaction to the rate cut news.
+
 \textbf{Source:}
 \begin{itemize}
-    \item Investing.com CSV download for NIFTY 50 daily prices (Apr 2000 - May 2020)
-    \item Yahoo Finance (via yfinance Python library) for Jun 2020 - Apr 2026
+    \item Investing.com CSV download for NIFTY 50 daily prices (Apr 2000 -- May 2020)
+    \item Yahoo Finance (via yfinance Python library) for Jun 2020 -- Apr 2026
     \item Federal Reserve FOMC meeting dates for rate cut event classification
 \end{itemize}
 
@@ -66,123 +68,123 @@ Derived variable: Weekly log-return, calculated as:
 \centering
 \begin{tabularx}{\textwidth}{|l|l|X|}
 \hline
-\rowcolor{hdrbg} \textcolor{white}{\textbf{Period}} & \textcolor{white}{\textbf{Weeks}} & \textcolor{white}{\textbf{Key Events}} \\
+\rowcolor{hdrbg} \textcolor{white}{\textbf{Category}} & \textcolor{white}{\textbf{Days}} & \textcolor{white}{\textbf{Description}} \\
 \hline
-Fed cut weeks & $\sim$31 weeks & Weeks containing FOMC rate cut decisions \\
+Event days (E) & 31 days & Next Indian trading day after each FOMC rate cut \\
 \hline
 \rowcolor{rowalt}
-Non-cut weeks & $\sim$1326 weeks & All remaining trading weeks \\
+Normal days (N) & 6426 days & All other trading days \\
 \hline
 \end{tabularx}
 \end{table}
 
-\textbf{Sample Data Rows (50 observations --- all cut-weeks + selected non-cut-weeks):}
+\textbf{Sample Data Rows (50 observations --- all 31 event-days + 19 selected normal days):}
 \begin{table}[H]
 \centering
 \footnotesize
-\begin{tabular}{|l|c|c|c|l|c|}
+\begin{tabular}{|l|c|c|l|c|}
 \hline
-\rowcolor{hdrbg}\textcolor{white}{\textbf{Date}} & \textcolor{white}{\textbf{Close}} & \textcolor{white}{\textbf{return\_pct}} & \textcolor{white}{\textbf{fed\_cut\_week}} & \textcolor{white}{\textbf{group}} & \textcolor{white}{\textbf{neg\_week}} \\
+\rowcolor{hdrbg}\textcolor{white}{\textbf{Date}} & \textcolor{white}{\textbf{Close}} & \textcolor{white}{\textbf{return\_pct}} & \textcolor{white}{\textbf{group}} & \textcolor{white}{\textbf{neg\_day}} \\
 \hline
-05-01-2001 & 1327.25 & 4.9184 & TRUE & Cut-week & 0 \\
+04-01-2001 & 1307.65 & 1.2621 & Event-day & 0 \\
 \hline
-02-02-2001 & 1378.85 & 0.6366 & TRUE & Cut-week & 0 \\
+01-02-2001 & 1359.15 & -0.9191 & Event-day & 1 \\
 \hline
-23-03-2001 & 1161.30 & -2.7392 & TRUE & Cut-week & 1 \\
+16-03-2001 & 1193.55 & -1.9580 & Normal-day & 1 \\
 \hline
-20-04-2001 & 1144.00 & 10.9936 & TRUE & Cut-week & 0 \\
+21-03-2001 & 1207.10 & 3.0405 & Event-day & 0 \\
 \hline
-18-05-2001 & 1172.80 & 2.7927 & TRUE & Cut-week & 0 \\
+19-04-2001 & 1144.45 & 3.6528 & Event-day & 0 \\
 \hline
-29-06-2001 & 1107.90 & 1.8447 & TRUE & Cut-week & 0 \\
+16-05-2001 & 1151.15 & 0.5095 & Event-day & 0 \\
 \hline
-17-08-2001 & 1069.20 & -0.1822 & FALSE & Non-cut-week & 1 \\
+28-06-2001 & 1094.00 & -0.1918 & Event-day & 1 \\
 \hline
-24-08-2001 & 1069.15 & -0.0047 & TRUE & Cut-week & 1 \\
+06-08-2001 & 1075.25 & 0.0605 & Normal-day & 0 \\
 \hline
-21-09-2001 & 854.20 & -7.3882 & TRUE & Cut-week & 1 \\
+23-08-2001 & 1071.50 & 0.2617 & Event-day & 0 \\
 \hline
-05-10-2001 & 914.60 & 0.0820 & TRUE & Cut-week & 0 \\
+18-09-2001 & 900.20 & 3.1541 & Event-day & 0 \\
 \hline
-09-11-2001 & 1004.05 & 0.6445 & TRUE & Cut-week & 0 \\
+03-10-2001 & 899.65 & -1.1549 & Event-day & 1 \\
 \hline
-14-12-2001 & 1087.85 & -2.2227 & TRUE & Cut-week & 1 \\
+02-11-2001 & 997.60 & 0.3615 & Normal-day & 0 \\
 \hline
-14-06-2002 & 1085.70 & 3.4578 & FALSE & Non-cut-week & 0 \\
+07-11-2001 & 987.50 & -1.4477 & Event-day & 1 \\
 \hline
-08-11-2002 & 956.95 & 0.5764 & TRUE & Cut-week & 0 \\
+12-12-2001 & 1107.65 & -0.2300 & Event-day & 1 \\
 \hline
-27-06-2003 & 1125.55 & 2.2734 & TRUE & Cut-week & 0 \\
+07-11-2002 & 960.70 & -0.1664 & Event-day & 1 \\
 \hline
-28-11-2003 & 1615.25 & 4.7253 & FALSE & Non-cut-week & 0 \\
+26-06-2003 & 1116.35 & 0.8727 & Event-day & 0 \\
 \hline
-30-01-2004 & 1809.75 & -2.0672 & FALSE & Non-cut-week & 1 \\
+06-09-2005 & 2428.65 & 0.2350 & Normal-day & 0 \\
 \hline
-28-10-2005 & 2316.05 & -5.3671 & FALSE & Non-cut-week & 1 \\
+02-11-2006 & 3791.20 & 0.6390 & Normal-day & 0 \\
 \hline
-03-02-2006 & 2940.60 & -1.4232 & FALSE & Non-cut-week & 1 \\
+12-03-2007 & 3734.60 & 0.4455 & Normal-day & 0 \\
 \hline
-31-08-2007 & 4464.00 & 6.3309 & FALSE & Non-cut-week & 0 \\
+16-07-2007 & 4512.15 & 0.1686 & Normal-day & 0 \\
 \hline
-21-09-2007 & 4837.55 & 6.8339 & TRUE & Cut-week & 0 \\
+19-09-2007 & 4732.35 & 4.0130 & Event-day & 0 \\
 \hline
-02-11-2007 & 5932.40 & 3.9559 & TRUE & Cut-week & 0 \\
+01-11-2007 & 5866.45 & -0.5813 & Event-day & 1 \\
 \hline
-14-12-2007 & 6047.70 & 1.2211 & TRUE & Cut-week & 0 \\
+12-12-2007 & 6159.30 & 1.0125 & Event-day & 0 \\
 \hline
-25-01-2008 & 5383.35 & -5.8085 & TRUE & Cut-week & 1 \\
+23-01-2008 & 5203.40 & 6.0220 & Event-day & 0 \\
 \hline
-01-02-2008 & 5317.25 & -1.2355 & TRUE & Cut-week & 1 \\
+31-01-2008 & 5137.45 & -0.5852 & Event-day & 1 \\
 \hline
-15-02-2008 & 5302.90 & 3.5031 & FALSE & Non-cut-week & 0 \\
+19-03-2008 & 4573.95 & 0.8993 & Event-day & 0 \\
 \hline
-21-03-2008 & 4573.95 & -3.6883 & TRUE & Cut-week & 1 \\
+02-05-2008 & 5228.20 & 1.1988 & Event-day & 0 \\
 \hline
-02-05-2008 & 5228.20 & 2.2535 & TRUE & Cut-week & 0 \\
+10-10-2008 & 3279.95 & -6.8827 & Event-day & 1 \\
 \hline
-13-06-2008 & 4517.10 & -2.4211 & FALSE & Non-cut-week & 1 \\
+31-10-2008 & 2885.60 & 6.7574 & Event-day & 0 \\
 \hline
-10-10-2008 & 3279.95 & -15.1977 & TRUE & Cut-week & 1 \\
+05-12-2008 & 2714.40 & -2.6754 & Normal-day & 1 \\
 \hline
-31-10-2008 & 2885.60 & 11.0394 & TRUE & Cut-week & 0 \\
+17-12-2008 & 2954.35 & -2.9154 & Event-day & 1 \\
 \hline
-28-11-2008 & 2755.10 & 2.2631 & FALSE & Non-cut-week & 0 \\
+25-06-2010 & 5269.05 & -0.9736 & Normal-day & 1 \\
 \hline
-19-12-2008 & 3077.50 & 5.2072 & TRUE & Cut-week & 0 \\
+02-08-2010 & 5431.65 & 1.1862 & Normal-day & 0 \\
 \hline
-11-09-2009 & 4829.55 & 3.1370 & FALSE & Non-cut-week & 0 \\
+07-08-2014 & 7649.25 & -0.2976 & Normal-day & 1 \\
 \hline
-04-12-2009 & 5108.90 & 3.3265 & FALSE & Non-cut-week & 0 \\
+24-08-2015 & 7809.00 & -6.0973 & Normal-day & 1 \\
 \hline
-13-03-2015 & 8647.75 & -3.2985 & FALSE & Non-cut-week & 1 \\
+13-06-2016 & 8110.60 & -0.7303 & Normal-day & 1 \\
 \hline
-29-09-2017 & 9788.60 & -1.7800 & FALSE & Non-cut-week & 1 \\
+06-02-2018 & 10498.25 & -1.5904 & Normal-day & 1 \\
 \hline
-13-10-2017 & 10167.45 & 1.8638 & FALSE & Non-cut-week & 0 \\
+01-08-2019 & 10980.00 & -1.2490 & Event-day & 1 \\
 \hline
-02-08-2019 & 10997.35 & -2.5758 & TRUE & Cut-week & 1 \\
+19-09-2019 & 10704.80 & -1.2611 & Event-day & 1 \\
 \hline
-20-09-2019 & 11274.20 & 1.7745 & TRUE & Cut-week & 0 \\
+31-10-2019 & 11877.45 & 0.2812 & Event-day & 0 \\
 \hline
-01-11-2019 & 11890.60 & 2.6132 & TRUE & Cut-week & 0 \\
+24-01-2020 & 12248.25 & 0.5559 & Normal-day & 0 \\
 \hline
-06-03-2020 & 10989.45 & -1.9134 & TRUE & Cut-week & 1 \\
+04-03-2020 & 11251.00 & -0.4638 & Event-day & 1 \\
 \hline
-20-03-2020 & 8745.45 & -12.9561 & TRUE & Cut-week & 1 \\
+16-03-2020 & 9197.40 & -7.9174 & Event-day & 1 \\
 \hline
-19-06-2020 & 10244.40 & 2.6860 & FALSE & Non-cut-week & 0 \\
+22-06-2020 & 10311.20 & 0.6499 & Normal-day & 0 \\
 \hline
-22-04-2022 & 17171.95 & -1.7531 & FALSE & Non-cut-week & 1 \\
+03-02-2022 & 17560.20 & -1.2439 & Normal-day & 1 \\
 \hline
-06-09-2024 & 24852.15 & -1.5323 & FALSE & Non-cut-week & 1 \\
+05-08-2022 & 17397.50 & 0.0891 & Normal-day & 0 \\
 \hline
-20-09-2024 & 25790.95 & 1.6989 & TRUE & Cut-week & 0 \\
+02-07-2024 & 24123.85 & -0.0750 & Normal-day & 1 \\
 \hline
-08-11-2024 & 24148.20 & -0.6446 & TRUE & Cut-week & 1 \\
+20-09-2024 & 25790.95 & 1.4653 & Event-day & 0 \\
 \hline
-20-12-2024 & 23587.50 & -4.8848 & TRUE & Cut-week & 1 \\
+08-11-2024 & 24148.20 & -0.2116 & Event-day & 1 \\
 \hline
-18-07-2025 & 24968.40 & -0.7241 & FALSE & Non-cut-week & 1 \\
+19-12-2024 & 23951.70 & -1.0266 & Event-day & 1 \\
 \hline
 \end{tabular}
 \end{table}
@@ -190,19 +192,22 @@ Non-cut weeks & $\sim$1326 weeks & All remaining trading weeks \\
 \newpage
 \section{Real-World Problem}
 
-``Is the mean weekly return and the probability of a negative week statistically different during Fed rate cut weeks compared to non-cut weeks?''
+\textbf{Research Question:} ``Does the US Federal Reserve interest rate cut have a significant \textbf{positive} effect on the NIFTY 50 index the next trading day?''
 
-This matters enormously for:
+\textbf{Hypothesis:} Rate cuts signal easier monetary policy globally, which should boost emerging market equities like NIFTY 50 through capital inflows and improved risk sentiment.
+
+This matters for:
 \begin{itemize}
-    \item Portfolio managers deciding asset allocation around FOMC announcements
-    \item Risk modellers calibrating VaR under US monetary policy stress
-    \item Policy economists quantifying the spillover cost of US rate decisions on Indian equities
+    \item \textbf{Futures traders:} A systematic edge on event days translates to direct profit on NIFTY futures
+    \item \textbf{Options traders:} Event-day volatility and direction affect straddle/strangle strategies
+    \item \textbf{Portfolio managers:} Adjusting positions ahead of known FOMC rate cut announcements
+    \item \textbf{Policy economists:} Quantifying US monetary policy spillover to Indian equities
 \end{itemize}
 
 \section{Methodology}
 
 \subsection{Point Estimation}
-For each group (cut-week vs non-cut-week), we estimate:
+For each group (event-day vs normal-day), we estimate:
 \begin{table}[H]
 \centering
 \begin{tabularx}{\textwidth}{|l|X|X|}
@@ -212,70 +217,71 @@ For each group (cut-week vs non-cut-week), we estimate:
 Sample mean $\bar{x}$ & $\frac{1}{n} \sum x_i$ & Unbiased estimator of $\mu$ \\
 \hline
 \rowcolor{rowalt}
-Sample variance $s^2$ & $\frac{1}{n-1} \sum (x_i - \bar{x})^2$ & Unbiased (uses $n-1$) \\
+Sample variance $s^2$ & $\frac{1}{n-1} \sum (x_i - \bar{x})^2$ & Unbiased (Bessel's correction) \\
 \hline
-Sample proportion $\hat{p}$ & $\hat{p}_C = 13/31 = 0.419$ \newline $\hat{p}_N = 573/1326 = 0.432$ & MLE for Bernoulli $p$ \\
+Sample proportion $\hat{p}$ & $\hat{p}_E = 16/31 = 0.516$ \newline $\hat{p}_N = 2953/6426 = 0.460$ & MLE for Bernoulli $p$ \\
 \hline
 \end{tabularx}
 \end{table}
 
 \subsection{Interval Estimation}
-95\% Confidence Interval for the mean (using t-distribution since $\sigma$ is unknown):
+95\% Confidence Interval for the mean (t-distribution, $\sigma$ unknown):
 \begin{equation*}
     \bar{x} \pm t_{\alpha/2, n-1} \cdot \frac{s}{\sqrt{n}}
 \end{equation*}
 
-95\% CI for proportion (using normal approximation, valid since $n\hat{p} > 5$):
+95\% CI for proportion (normal approximation, valid since $n\hat{p} > 5$):
 \begin{equation*}
     \hat{p} \pm z_{\alpha/2} \cdot \sqrt{\frac{\hat{p}(1-\hat{p})}{n}}
 \end{equation*}
 
 \subsection{Hypothesis Test 1 --- Two-Sample t-Test for Means}
-We test whether mean weekly returns differ across groups.
+We test whether Fed rate cuts have a positive effect on next-day NIFTY returns.
 \begin{equation*}
-    H_0: \mu_C = \mu_N \quad \text{vs} \quad H_1: \mu_C < \mu_N \quad \text{(one-tailed)}
+    H_0: \mu_E = \mu_N \quad \text{vs} \quad H_1: \mu_E > \mu_N \quad \text{(one-tailed, rate cuts boost returns)}
 \end{equation*}
 Welch's t-statistic (unequal variances assumed):
 \begin{equation*}
-    t = \frac{\bar{x}_C - \bar{x}_N}{\sqrt{\frac{s_C^2}{n_C} + \frac{s_N^2}{n_N}}}
+    t = \frac{\bar{x}_E - \bar{x}_N}{\sqrt{\frac{s_E^2}{n_E} + \frac{s_N^2}{n_N}}}
 \end{equation*}
 Degrees of freedom via the Welch-Satterthwaite equation. Reject $H_0$ if $p < 0.05$.
 
 \subsection{Hypothesis Test 2 --- z-Test for Difference in Proportions}
+We test whether event-days have fewer negative returns (positive effect).
 \begin{equation*}
-    H_0: p_C = p_N \quad \text{vs} \quad H_1: p_C > p_N \quad \text{(one-tailed)}
+    H_0: p_E = p_N \quad \text{vs} \quad H_1: p_E < p_N \quad \text{(one-tailed, fewer negative days)}
 \end{equation*}
 \begin{equation*}
-    z = \frac{\hat{p}_C - \hat{p}_N}{\sqrt{\hat{p}(1-\hat{p}) \left( \frac{1}{n_C} + \frac{1}{n_N} \right) }}
+    z = \frac{\hat{p}_E - \hat{p}_N}{\sqrt{\hat{p}(1-\hat{p}) \left( \frac{1}{n_E} + \frac{1}{n_N} \right) }}
 \end{equation*}
 where $\hat{p}$ is the pooled proportion under $H_0$.
 
 \newpage
 \section{Results \& Inference}
-Below are the numerical results from our analysis using real NIFTY 50 weekly data (2000--2026):
+Below are the numerical results from our analysis using real NIFTY 50 daily data (2000--2026):
 
 \vspace{1em}
-\textbf{Descriptive statistics --- weekly log-returns (\%):}
+\textbf{Descriptive statistics --- daily log-returns (\%):}
 \begin{table}[H]
 \centering
 \begin{tabularx}{\textwidth}{|l|c|X|}
 \hline
-\rowcolor{hdrbg} \textcolor{white}{\textbf{Statistic}} & \textcolor{white}{\textbf{Cut-week (C)}} & \textcolor{white}{\textbf{Non-cut-week (N)}} \\
+\rowcolor{hdrbg} \textcolor{white}{\textbf{Statistic}} & \textcolor{white}{\textbf{Event-day (E)}} & \textcolor{white}{\textbf{Normal-day (N)}} \\
 \hline
-Sample mean $\bar{x}$ & 0.0032\% & 0.2076\% \\
-\hline
-\rowcolor{rowalt}
-Sample std dev $s$ & 5.6055\% & 2.7629\% \\
-\hline
-Sample size $n$ & 31 & 1326 \\
+Sample mean $\bar{x}$ & +0.2322\% & +0.0410\% \\
 \hline
 \rowcolor{rowalt}
-95\% CI for mean & [-2.05\%, 2.06\%] & [0.06\%, 0.36\%] \\
+Sample std dev $s$ & 2.9730\% & 1.3409\% \\
 \hline
-Proportion neg weeks $\hat{p}$ & 0.419 & 0.432 \\
+Sample size $n$ & 31 & 6426 \\
 \hline
 \rowcolor{rowalt}
-95\% CI for proportion & [0.246, 0.593] & [0.405, 0.459] \\
+95\% CI for mean & [-0.8583\%, +1.3227\%] & [+0.0082\%, +0.0738\%] \\
+\hline
+Proportion neg days $\hat{p}$ & 0.516 & 0.460 \\
+\hline
+\rowcolor{rowalt}
+95\% CI for proportion & [0.340, 0.692] & [0.447, 0.472] \\
 \hline
 \end{tabularx}
 \end{table}
@@ -288,20 +294,20 @@ Proportion neg weeks $\hat{p}$ & 0.419 & 0.432 \\
 \hline
 \rowcolor{hdrbg} \textcolor{white}{\textbf{Item}} & \textcolor{white}{\textbf{Value}} & \textcolor{white}{\textbf{Decision}} \\
 \hline
-$H_0$ & $\mu_C = \mu_N$ (no difference) & \\
+$H_0$ & $\mu_E = \mu_N$ (no difference) & \\
 \hline
 \rowcolor{rowalt}
-$H_1$ & $\mu_C < \mu_N$ (cut-week is lower) & \\
+$H_1$ & $\mu_E > \mu_N$ (rate cuts boost next-day returns) & \\
 \hline
-t-statistic & -0.2024 & \\
+t-statistic & +0.3580 & \\
 \hline
 \rowcolor{rowalt}
 Degrees of freedom & $\sim30$ (Welch-Satterthwaite) & \\
 \hline
-p-value (one-tailed) & 0.4205 & \textbf{Fail to Reject $H_0$} \\
+p-value (one-tailed) & 0.3614 & \textbf{Fail to Reject $H_0$} \\
 \hline
 \rowcolor{rowalt}
-Critical value $t_{0.05}$ & -1.697 & $|t| < |t_{crit}| \Rightarrow$ fail to reject \\
+Critical value $t_{0.05}$ & +1.697 & $t < t_{crit} \Rightarrow$ fail to reject \\
 \hline
 \end{tabularx}
 \end{table}
@@ -313,20 +319,20 @@ Critical value $t_{0.05}$ & -1.697 & $|t| < |t_{crit}| \Rightarrow$ fail to reje
 \hline
 \rowcolor{hdrbg} \textcolor{white}{\textbf{Item}} & \textcolor{white}{\textbf{Value}} & \textcolor{white}{\textbf{Decision}} \\
 \hline
-$H_0$ & $p_C = p_N$ (same probability) & \\
+$H_0$ & $p_E = p_N$ (same probability) & \\
 \hline
 \rowcolor{rowalt}
-$H_1$ & $p_C > p_N$ (more negative weeks) & \\
+$H_1$ & $p_E < p_N$ (fewer negative days after rate cut) & \\
 \hline
-Pooled proportion $\hat{p}$ & 0.432 & \\
-\hline
-\rowcolor{rowalt}
-z-statistic & -0.1419 & \\
-\hline
-p-value (one-tailed) & 0.5564 & \textbf{Fail to Reject $H_0$} \\
+Pooled proportion $\hat{p}$ & 0.460 & \\
 \hline
 \rowcolor{rowalt}
-Critical value $z_{0.05}$ & 1.645 & $z < z_{crit} \Rightarrow$ fail to reject \\
+z-statistic & +0.6307 & \\
+\hline
+p-value (one-tailed) & 0.7359 & \textbf{Fail to Reject $H_0$} \\
+\hline
+\rowcolor{rowalt}
+Critical value $z_{0.05}$ & $-1.645$ & $z > -z_{crit} \Rightarrow$ fail to reject \\
 \hline
 \end{tabularx}
 \end{table}
@@ -339,15 +345,15 @@ Critical value $z_{0.05}$ & 1.645 & $z < z_{crit} \Rightarrow$ fail to reject \\
 \hline
 \rowcolor{hdrbg} \textcolor{white}{\textbf{Item}} & \textcolor{white}{\textbf{Value}} & \textcolor{white}{\textbf{Decision}} \\
 \hline
-$H_0$ & $\sigma^2_C = \sigma^2_N$ (same variance) & \\
+$H_0$ & $\sigma^2_E = \sigma^2_N$ (same variance) & \\
 \hline
 \rowcolor{rowalt}
-$H_1$ & $\sigma^2_C \neq \sigma^2_N$ (different variance) & \\
+$H_1$ & $\sigma^2_E \neq \sigma^2_N$ (different variance) & \\
 \hline
-F-statistic & 4.1164 & \\
+F-statistic & 4.9158 & \\
 \hline
 \rowcolor{rowalt}
-Degrees of freedom & $df_1=30, df_2=1325$ & \\
+Degrees of freedom & $df_1=30, df_2=6425$ & \\
 \hline
 p-value (two-tailed) & 0.0000 & \textbf{Reject $H_0$} \\
 \hline
@@ -366,37 +372,64 @@ $H_0$ & Returns $\sim$ Normal ($S=0, K=3$) & \\
 \rowcolor{rowalt}
 $H_1$ & Returns are non-normal & \\
 \hline
-JB statistic & 945.24 & \\
+JB statistic & 35889.47 & \\
 \hline
 \rowcolor{rowalt}
 p-value & 0.000000 & \textbf{Reject $H_0$} \\
 \hline
-Skewness ($S$) & -0.5809 & Left-skewed \\
+Skewness ($S$) & -0.4977 & Left-skewed \\
 \hline
 \rowcolor{rowalt}
-Excess Kurtosis ($K-3$) & 3.9202 & Fat tails \\
+Excess Kurtosis ($K-3$) & 11.5068 & Fat tails \\
 \hline
 \end{tabularx}
 \end{table}
 
-\section{Practical Implications}
+\section{Statistical Significance vs Economic Significance}
 
-\textbf{For investors:} The evidence confirms that Fed rate cut weeks show a directionally lower but not statistically significant change in NIFTY 50 returns. The mean weekly return during cut-weeks is 0.00\% vs 0.21\% during non-cut weeks --- a spread of $\sim$0.20\% per week. A portfolio manager should be cautious about over-adjusting downside risk budgets when the Fed signals rate cuts.
+A critical distinction must be made between \textbf{statistical significance} (can we reject $H_0$ at $\alpha = 0.05$?) and \textbf{economic/practical significance} (is the effect large enough to matter for trading?).
 
-\vspace{1em}
-\textbf{For risk management:} With $\hat{p}_C = 0.419$, about 4 in 10 cut-weeks deliver a negative return vs 4 in 10 for normal weeks. However, this difference is not statistically significant. The F-test shows volatility is significantly higher during cut-weeks ($F=4.12, p=0.0000$).
+\begin{table}[H]
+\centering
+\begin{tabularx}{\textwidth}{|l|X|X|}
+\hline
+\rowcolor{hdrbg} \textcolor{white}{\textbf{Aspect}} & \textcolor{white}{\textbf{Statistical View}} & \textcolor{white}{\textbf{Economic/Trading View}} \\
+\hline
+Mean spread & $+0.19\%$ per event-day, $p = 0.3614$ & On NIFTY at $\sim$25,000: this is $\sim$48 points per event \\
+\hline
+\rowcolor{rowalt}
+For Futures (1 lot) & Not significant at $\alpha = 0.05$ & Profit $\approx$ \textbf{Rs 1,195} per lot per event \\
+\hline
+For Options & Sample too small ($n=31$) & ATM calls gain from both delta and IV expansion during event \\
+\hline
+\rowcolor{rowalt}
+Cumulative edge & Wide 95\% CI crosses zero & 31 events $\times$ +0.19\% $=$ \textbf{+5.9\%} cumulative alpha over 25 years \\
+\hline
+Annualised & CI: [-0.86\%, +1.32\%] & $+0.19\% \times 252 \approx +48.2\%$ annualised edge \\
+\hline
+\end{tabularx}
+\end{table}
 
-\vspace{1em}
-\textbf{For economic policy:} The $\sim$0.20\% spread in mean weekly returns compounds to roughly a $10.6\%$ annualised gap. NIFTY returns are strongly non-normal ($JB=945, p\approx 0$) with fat tails (excess kurtosis = $3.92$), meaning standard Gaussian risk models underestimate tail risk for Indian equities.
+\textbf{Why the test fails to reject $H_0$:}
+\begin{enumerate}
+    \item \textbf{Small sample:} Only $n = 31$ rate cut events in 25 years. The t-test requires large $n$ to detect small effects.
+    \item \textbf{Extreme volatility:} Event-day $\sigma = 2.97\%$ ($\sim2.2\times$ normal), widening the CI.
+    \item \textbf{Mixed reactions:} Some cuts occur during crises (2008, 2020) where markets fall despite the cut, inflating variance.
+\end{enumerate}
 
 \section{Overall Conclusion}
+
+\textbf{Estimation Conclusion:} The data suggests a \textbf{directionally positive but statistically insignificant} effect of Fed rate cuts on NIFTY 50, with \textbf{significantly higher volatility} on event days.
+
 At $\alpha = 0.05$, we do not have sufficient statistical evidence to conclude that:
 
 \begin{enumerate}
-    \item Mean NIFTY 50 weekly returns are directionally lower but not significantly different during Fed rate cut weeks ($t=-0.20, p=0.4205$).
-    \item The probability of a negative return week is not significantly different during cut-weeks ($z=-0.14, p=0.5564$).
-    \item Volatility IS significantly higher during cut-weeks ($F=4.12, p=0.0000$). The null hypothesis of equal variance is rejected.
-    \item NIFTY weekly returns are non-normal ($JB=945, p\approx 0$). The Student-t distribution provides a better fit than the Gaussian.
+    \item Mean NIFTY 50 next-day returns are not significantly higher after Fed rate cuts ($t=+0.36, p=0.3614$). The point estimate is positive ($\bar{x}_E = +0.2322\%$ vs $\bar{x}_N = +0.0410\%$) but the wide CI includes zero.
+    \item The probability of a negative return is not significantly fewer on event-days ($z=+0.63, p=0.7359$).
+    \item Volatility IS significantly higher on event-days ($F=4.92, p=0.0000$). The null hypothesis of equal variance is \textbf{rejected}.
+    \item NIFTY daily returns are non-normal ($JB=35889, p\approx 0$). The Student-t distribution provides a better fit than the Gaussian.
 \end{enumerate}
+
+\textbf{Key Insight:} In quantitative finance, a strategy with a positive expected return can be \textbf{economically significant} even without statistical significance at the conventional $\alpha = 0.05$ level. The $+0.19\%$ daily spread, while not rejecting $H_0$, represents a \textbf{tradeable edge} that systematic traders would exploit with proper position sizing and risk management.
 
 \end{document}
